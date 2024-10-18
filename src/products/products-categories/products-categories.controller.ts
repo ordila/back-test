@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import {
   CreateCategoryDto,
   UpdateCategoryDto,
 } from './dto/create-category.dto';
+import { AdminGuard } from 'src/common/guards/admin.guard';
 
 @Controller('products-categories')
 export class ProductsCategoriesController {
@@ -25,17 +27,20 @@ export class ProductsCategoriesController {
     return this.productsCategoriesService.getAllCategories();
   }
 
+  @UseGuards(AdminGuard)
   @Post()
   @UsePipes(new ValidationPipe())
   async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.productsCategoriesService.createCategory(createCategoryDto);
   }
 
+  @UseGuards(AdminGuard)
   @Delete(':categoryId')
   async deleteCategory(@Param('categoryId', ParseIntPipe) categoryId: number) {
     return this.productsCategoriesService.deleteCategory(categoryId);
   }
 
+  @UseGuards(AdminGuard)
   @Patch(':categoryId')
   @UsePipes(new ValidationPipe())
   async updateCategory(
