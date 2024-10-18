@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { ErrorMessages } from 'src/common/enums/error-messages.enum';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +44,7 @@ export class AuthService {
   private async isPasswordValid(password: string, userPassword: string) {
     const isValid = await bcrypt.compare(password, userPassword);
     if (!isValid) {
-      throw new BadRequestException('Invalid email or password');
+      throw new BadRequestException(ErrorMessages.INVALID_EMAIL_OR_PASSWORD);
     }
     return true;
   }
@@ -52,7 +53,7 @@ export class AuthService {
     const { password, email } = authUserDto;
     const existingUser = await this.findUserByEmail(email);
     if (existingUser) {
-      throw new BadRequestException('Email is already taken');
+      throw new BadRequestException(ErrorMessages.EMAIL_ALREADY_TAKEN);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -65,7 +66,7 @@ export class AuthService {
     const { email, password } = authUserDto;
     const user = await this.findUserByEmail(email);
     if (!user) {
-      throw new BadRequestException('Invalid email or password');
+      throw new BadRequestException(ErrorMessages.INVALID_EMAIL_OR_PASSWORD);
     }
 
     await this.isPasswordValid(password, user.password);
@@ -84,7 +85,7 @@ export class AuthService {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: Number(this.configService.get<string>('COOKIE_MAX_AGE')),
     });
 
     return { accessToken };
@@ -96,7 +97,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user || !user.isAdmin) {
-      throw new BadRequestException('Invalid email or password');
+      throw new BadRequestException(ErrorMessages.INVALID_EMAIL_OR_PASSWORD);
     }
 
     await this.isPasswordValid(password, user.password);
@@ -115,7 +116,7 @@ export class AuthService {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: Number(this.configService.get<string>('COOKIE_MAX_AGE')),
     });
 
     return { accessToken };
@@ -126,7 +127,7 @@ export class AuthService {
       const oldRefreshToken = req.cookies['refreshToken'];
 
       if (!oldRefreshToken) {
-        throw new BadRequestException('No refresh token provided');
+        throw new BadRequestException(ErrorMessages.NO_REFRESH_TOKEN_PROVIDED);
       }
 
       const decoded = jwt.verify(
@@ -139,7 +140,7 @@ export class AuthService {
       });
 
       if (!user || user.refreshToken !== oldRefreshToken) {
-        throw new BadRequestException('Invalid refresh token');
+        throw new BadRequestException(ErrorMessages.INVALID_REFRESH_TOKEN);
       }
 
       const newAccessToken = this.generateAccessToken(user.id, user.isAdmin);
@@ -154,19 +155,19 @@ export class AuthService {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: Number(this.configService.get<string>('COOKIE_MAX_AGE')),
       });
 
       return { accessToken: newAccessToken };
     } catch (err) {
-      throw new BadRequestException('Invalid refresh token');
+      throw new BadRequestException(ErrorMessages.INVALID_REFRESH_TOKEN);
     }
   }
 
   async logout(req: Request, res: Response) {
     const refreshToken = req.cookies['refreshToken'];
     if (!refreshToken) {
-      throw new BadRequestException('No refresh token found');
+      throw new BadRequestException(ErrorMessages.NO_REFRESH_TOKEN_FOUND);
     }
 
     const user = await this.prisma.user.findFirst({ where: { refreshToken } });

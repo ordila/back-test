@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ErrorMessages } from 'src/common/enums/error-messages.enum';
 
 @Injectable()
 export class WishListService {
@@ -43,7 +44,7 @@ export class WishListService {
     });
 
     if (!existingItem) {
-      throw new BadRequestException('Product is not in your wish list');
+      throw new BadRequestException(ErrorMessages.PRODUCT_NOT_IN_WISHLIST);
     }
 
     return this.prisma.wishList.delete({
