@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  email       String      @unique
+  password    String
+  isAdmin     Boolean     @default(false)
+  name        String?
+  middleName  String?
+  lastName    String?
+  dateOfBirth DateTime?
+  sex         String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  refreshToken String?  
+
+  contacts Contact[]
+  ordersRecipients OrdersRecipient[]
+  wishList WishList[]
+  deliveryAddresses DeliveryAddress[]
+  reviews Review[]
+}
+
+model Contact {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  email       String?
+  phoneNumber String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OrdersRecipient {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  profileName String?
+  name        String
+  middleName  String?
+  lastName    String?
+  phoneNumber String?
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DeliveryAddress {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  country   String
+  region    String
+  postcode  String
+  city      String
+  street    String
+  house     String
+  apartment String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WishList {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+
+model Product {
+  id                      Int                             @id @default(autoincrement())
+  categoryId              Int
+  name                    String
+  description             String?
+  price                   Float
+  discount                Float?                          @default(0.0)
+  createdAt               DateTime                        @default(now())
+  updatedAt               DateTime                        @updatedAt
+  category                Category                        @relation(fields: [categoryId], references: [id])
+  bundlesAsBundled        ProductBundle[]                 @relation("BundledProduct")
+  bundlesAsMain           ProductBundle[]                 @relation("MainProduct")
+  images                  ProductImage[]
+  label                   ProductLabel[]
+  specificationCategories ProductSpecificationsCategory[]
+  variantCategories       ProductVariantCategory[]
+  reviews                 Review[]
+  wishList                WishList[]
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  imageUrl  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+
+
+model ProductVariantCategory {
+  id          Int              @id @default(autoincrement())
+  productId   Int
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+  variants    ProductVariant[]
+  product     Product          @relation(fields: [productId], references: [id])
+}
+
+model ProductVariant {
+  id            Int                    @id @default(autoincrement())
+  variantValue  String
+  createdAt     DateTime               @default(now())
+  categoryId    Int
+  price         Float?
+  stockQuantity Int?
+  category      ProductVariantCategory @relation(fields: [categoryId], references: [id])
+}
+
+model ProductImage {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  imageUrl  String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model ProductSpecificationsCategory {
+  id             Int                    @id @default(autoincrement())
+  productId      Int
+  name           String
+  description    String
+  createdAt      DateTime               @default(now())
+  specifications ProductSpecification[]
+  product        Product                @relation(fields: [productId], references: [id])
+}
+
+model ProductSpecification {
+  id                        Int                           @id @default(autoincrement())
+  specificationCategoriesID Int
+  key                       String
+  value                     String
+  createdAt                 DateTime                      @default(now())
+  specificationCategories   ProductSpecificationsCategory @relation(fields: [specificationCategoriesID], references: [id])
+}
+
+model ProductLabel {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  labelId   Int
+  createdAt DateTime @default(now())
+  label     Label    @relation(fields: [labelId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+   @@unique([productId, labelId])
+}
+
+model Label {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  products    ProductLabel[]
+}
+
+model ProductBundle {
+  id               Int      @id @default(autoincrement())
+  mainProductId    Int
+  bundledProductId Int
+  bundlePrice      Float
+  createdAt        DateTime @default(now())
+  bundledProduct   Product  @relation("BundledProduct", fields: [bundledProductId], references: [id])
+  mainProduct      Product  @relation("MainProduct", fields: [mainProductId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
