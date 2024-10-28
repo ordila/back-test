@@ -1,5 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '../services/jwt.service';
+import { ErrorMessages } from '../enums/error-messages.enum';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -10,10 +16,19 @@ export class AuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     const token = this.jwtService.extractTokenFromHeader(authHeader);
-    const payload = this.jwtService.verifyToken(token);
 
-    request['user'] = payload;
+    if (!token) {
+      throw new UnauthorizedException(ErrorMessages.ACCESS_TOKEN_NOT_PROVIDED);
+    }
 
-    return true;
+    try {
+      const payload = this.jwtService.verifyToken(token);
+      request['user'] = payload;
+      return true;
+    } catch (err) {
+      throw new UnauthorizedException(
+        ErrorMessages.ACCESS_TOKEN_EXPIRED_OR_INVALID,
+      );
+    }
   }
 }
