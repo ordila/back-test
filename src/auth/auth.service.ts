@@ -6,12 +6,14 @@ import * as jwt from 'jsonwebtoken';
 import { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ErrorMessages } from 'src/common/enums/error-messages.enum';
+import { JwtService } from 'src/common/services/jwt.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private jwtService: JwtService,
   ) {}
 
   private async findUserByEmail(email: string) {
@@ -49,17 +51,48 @@ export class AuthService {
     return true;
   }
 
-  async register(authUserDto: AuthUserDto) {
+  async register(authUserDto: AuthUserDto, res: Response) {
     const { password, email } = authUserDto;
+
     const existingUser = await this.findUserByEmail(email);
     if (existingUser) {
       throw new BadRequestException(ErrorMessages.EMAIL_ALREADY_TAKEN);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: { email, password: hashedPassword },
     });
+
+    const { accessToken, refreshToken } = await this.generateTokens(
+      user.id,
+      user.isAdmin,
+    );
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    });
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: Number(
+        this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
+      ),
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: Number(
+        this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
+      ),
+    });
+
+    return { message: 'Registration successful', user };
   }
 
   async login(authUserDto: AuthUserDto, res: Response) {
@@ -81,14 +114,23 @@ export class AuthService {
       data: { refreshToken },
     });
 
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: Number(
+        this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
+      ),
+    });
+
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: Number(this.configService.get<string>('COOKIE_MAX_AGE')),
+      maxAge: Number(
+        this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
+      ),
     });
-
-    return { accessToken };
   }
 
   async adminLogin(authUserDto: AuthUserDto, res: Response) {
@@ -112,56 +154,70 @@ export class AuthService {
       data: { refreshToken },
     });
 
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: Number(
+        this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
+      ),
+    });
+
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: Number(this.configService.get<string>('COOKIE_MAX_AGE')),
+      maxAge: Number(
+        this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
+      ),
     });
-
-    return { accessToken };
   }
 
   async refreshToken(req: Request, res: Response) {
-    try {
-      const oldRefreshToken = req.cookies['refreshToken'];
+    const oldRefreshToken = req.cookies['refreshToken'];
 
-      if (!oldRefreshToken) {
-        throw new BadRequestException(ErrorMessages.NO_REFRESH_TOKEN_PROVIDED);
-      }
+    if (!oldRefreshToken) {
+      throw new BadRequestException(ErrorMessages.NO_REFRESH_TOKEN_PROVIDED);
+    }
 
-      const decoded = jwt.verify(
-        oldRefreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-      ) as { userId: number };
+    const decoded = jwt.verify(
+      oldRefreshToken,
+      this.configService.get<string>('REFRESH_TOKEN_SECRET'),
+    ) as { userId: number };
 
-      const user = await this.prisma.user.findUnique({
-        where: { id: decoded.userId },
-      });
+    const user = await this.prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
 
-      if (!user || user.refreshToken !== oldRefreshToken) {
-        throw new BadRequestException(ErrorMessages.INVALID_REFRESH_TOKEN);
-      }
-
-      const newAccessToken = this.generateAccessToken(user.id, user.isAdmin);
-      const newRefreshToken = this.generateRefreshToken(user.id);
-
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { refreshToken: newRefreshToken },
-      });
-
-      res.cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        maxAge: Number(this.configService.get<string>('COOKIE_MAX_AGE')),
-      });
-
-      return { accessToken: newAccessToken };
-    } catch (err) {
+    if (!user || user.refreshToken !== oldRefreshToken) {
       throw new BadRequestException(ErrorMessages.INVALID_REFRESH_TOKEN);
     }
+
+    const newAccessToken = this.generateAccessToken(user.id, user.isAdmin);
+    const newRefreshToken = this.generateRefreshToken(user.id);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken: newRefreshToken },
+    });
+
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: Number(
+        this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
+      ),
+    });
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: Number(
+        this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
+      ),
+    });
   }
 
   async logout(req: Request, res: Response) {
@@ -179,13 +235,25 @@ export class AuthService {
       });
     }
 
-    res.cookie('refreshToken', '', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      expires: new Date(0),
-    });
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
 
     return { message: 'Logged out successfully' };
+  }
+
+  async checkAuthStatus(req: Request): Promise<boolean> {
+    const accessToken = req.cookies['accessToken'];
+
+    if (!accessToken) {
+      return false;
+    }
+
+    try {
+      this.jwtService.verifyToken(accessToken);
+      console.log('jwtService', this.jwtService.verifyToken(accessToken));
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
