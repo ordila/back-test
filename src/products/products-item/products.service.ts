@@ -148,4 +148,38 @@ export class ProductsService {
       },
     });
   }
+
+  async getDiscountedProductsForHome() {
+    return this.prisma.product.findMany({
+      where: {
+        discount: {
+          gte: 0,
+        },
+      },
+      include: {
+        images: {
+          where: { isDefault: true },
+        },
+      },
+      orderBy: {
+        discount: 'desc',
+      },
+      take: 12,
+    });
+  }
+
+  async getDiscountedProductsByCategory(categoryId: number) {
+    return this.prisma.product.findMany({
+      where: {
+        categoryId: categoryId,
+        discount: {
+          gte: 0,
+        },
+      },
+      orderBy: {
+        discount: 'desc',
+      },
+      take: 12,
+    });
+  }
 }

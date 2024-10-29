@@ -12,13 +12,18 @@ export class AdminGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
+    const accessToken = request.cookies['accessToken'];
 
-    const token = this.jwtService.extractTokenFromHeader(authHeader);
-    const payload = this.jwtService.verifyToken(token);
+    if (!accessToken) {
+      throw new UnauthorizedException('Access token not provided');
+    }
 
+    // Перевірка access токена
+    const payload = this.jwtService.verifyToken(accessToken);
+
+    // Перевірка адміністративних прав
     if (payload.isAdmin) {
-      request['user'] = payload;
+      request['user'] = payload; // Зберігаємо дані користувача в запиті
       return true;
     }
 

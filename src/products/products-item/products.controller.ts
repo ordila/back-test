@@ -26,6 +26,11 @@ export class ProductsController {
     return this.productsService.getAll(query);
   }
 
+  @Get('discounted-products')
+  async getDiscountedProductsForHome() {
+    return this.productsService.getDiscountedProductsForHome();
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findOneByID(id);
@@ -49,5 +54,14 @@ export class ProductsController {
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.removeProduct(id);
+  }
+
+  @Get('category/:categoryId/discounted')
+  async getDiscountedProductsByCategory(
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+  ) {
+    return this.productsService.getDiscountedProductsByCategory(
+      Number(categoryId),
+    );
   }
 }
