@@ -44,7 +44,7 @@ export class AuthGuard implements CanActivate {
           response.cookie('accessToken', newAccessToken, {
             httpOnly: true,
             secure: true,
-            sameSite: 'strict',
+            sameSite: 'none',
             maxAge: Number(
               this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
             ),

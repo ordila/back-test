@@ -119,7 +119,7 @@ export class AuthService {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
       ),
@@ -128,7 +128,7 @@ export class AuthService {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
       ),
@@ -159,7 +159,7 @@ export class AuthService {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
       ),
@@ -168,7 +168,7 @@ export class AuthService {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
       ),
@@ -199,7 +199,7 @@ export class AuthService {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
       ),
@@ -208,7 +208,7 @@ export class AuthService {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
       ),
@@ -246,7 +246,7 @@ export class AuthService {
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
       ),
@@ -255,7 +255,7 @@ export class AuthService {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: Number(
         this.configService.get<string>('REFRESH_TOKEN_COOKIE_MAX_AGE'),
       ),
