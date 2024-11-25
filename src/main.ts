@@ -9,6 +9,12 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new LoggingInterceptor());
 
+  app.use((req, res, next) => {
+    console.log('Cookies:', req.cookies);
+    console.log('Headers:', req.headers);
+    next();
+  });
+
   app.enableCors({
     origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
