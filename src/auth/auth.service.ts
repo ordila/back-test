@@ -51,6 +51,48 @@ export class AuthService {
     return true;
   }
 
+  async getProfile(req: Request) {
+    const accessToken = req.cookies['accessToken'];
+
+    if (!accessToken) {
+      throw new BadRequestException(ErrorMessages.ACCESS_TOKEN_NOT_PROVIDED);
+    }
+
+    try {
+      const decoded = this.jwtService.verifyToken(accessToken) as {
+        userId: number;
+      };
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          middleName: true,
+          lastName: true,
+          sex: true,
+          dateOfBirth: true,
+          createdAt: true,
+          updatedAt: true,
+          contacts: true,
+          ordersRecipients: true,
+          deliveryAddresses: true,
+        },
+      });
+
+      if (!user) {
+        throw new BadRequestException(ErrorMessages.USER_NOT_FOUND);
+      }
+
+      return user;
+    } catch (error) {
+      throw new BadRequestException(
+        ErrorMessages.ACCESS_TOKEN_EXPIRED_OR_INVALID,
+      );
+    }
+  }
+
   async register(authUserDto: AuthUserDto, res: Response) {
     const { password, email } = authUserDto;
 

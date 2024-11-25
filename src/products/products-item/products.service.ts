@@ -164,7 +164,6 @@ export class ProductsService {
       orderBy: {
         discount: 'desc',
       },
-      take: 12,
     });
   }
 

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -12,10 +13,20 @@ import {
 import { AuthService } from './auth.service';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { Request, Response } from 'express';
+import { ErrorMessages } from 'src/common/enums/error-messages.enum';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get('profile')
+  async getProfile(@Req() req: Request) {
+    try {
+      return await this.authService.getProfile(req);
+    } catch (error) {
+      throw new BadRequestException(ErrorMessages.ACCESS_TOKEN_NOT_PROVIDED);
+    }
+  }
 
   @Post('register')
   @UsePipes(new ValidationPipe())

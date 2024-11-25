@@ -41,4 +41,8 @@ export class ProductsCategoriesService {
       },
     });
   }
+
+  async getCategoryByID(id: number) {
+    return this.prisma.category.findUnique({ where: { id } });
+  }
 }

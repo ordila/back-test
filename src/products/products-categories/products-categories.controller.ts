@@ -26,6 +26,10 @@ export class ProductsCategoriesController {
   async getAllCategories() {
     return this.productsCategoriesService.getAllCategories();
   }
+  @Get(':categoryId')
+  async getCategoryById(@Param('categoryId', ParseIntPipe) categoryId: number) {
+    return this.productsCategoriesService.getCategoryByID(categoryId);
+  }
 
   @UseGuards(AdminGuard)
   @Post()

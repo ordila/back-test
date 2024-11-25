@@ -27,10 +27,7 @@ export class ProductsLabelsService {
       },
     });
 
-    return labelsWithProducts.map((label) => ({
-      labelName: label.name,
-      products: label.products.map((productLabel) => productLabel.product),
-    }));
+    return labelsWithProducts;
   }
 
   async getProductsWithLabelsByCategory(categoryId: number) {
@@ -55,11 +52,15 @@ export class ProductsLabelsService {
         },
       },
     });
+    return labelsWithProducts;
 
-    return labelsWithProducts.map((label) => ({
-      labelName: label.name,
-      products: label.products.map((productLabel) => productLabel.product),
-    }));
+    // return labelsWithProducts.map((label) => ({
+    //   name: label.name,
+    //   createdAt: label.createdAt,
+    //   id: label.id,
+    //   description: label.description,
+    //   products: label.products.map((productLabel) => productLabel.product),
+    // }));
   }
 
   async createLabel(createLabelDto: CreateLabelDto) {

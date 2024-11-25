@@ -8,6 +8,8 @@ import { ProductsLabelsModule } from './products/products-labels/products-labels
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { WishListModule } from './wish-list/wish-list.module';
+import { ProductsReviewsModule } from './products/products-reviews/product-reviews.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { WishListModule } from './wish-list/wish-list.module';
     ProductsLabelsModule,
     AuthModule,
     WishListModule,
+    ProductsReviewsModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],

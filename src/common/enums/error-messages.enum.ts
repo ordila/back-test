@@ -7,4 +7,5 @@ export enum ErrorMessages {
   PRODUCT_NOT_IN_WISHLIST = 'Product is not in your wish list',
   ACCESS_TOKEN_NOT_PROVIDED = 'Access token not provided',
   ACCESS_TOKEN_EXPIRED_OR_INVALID = 'Access token expired or invalid',
+  USER_NOT_FOUND = 'User not found',
 }

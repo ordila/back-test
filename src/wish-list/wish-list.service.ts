@@ -7,10 +7,23 @@ export class WishListService {
   constructor(private prisma: PrismaService) {}
 
   async getWishListForUser(userId: number) {
-    return this.prisma.wishList.findMany({
+    const wishList = await this.prisma.wishList.findMany({
       where: { userId },
-      select: { productId: true },
+      select: {
+        product: {
+          include: {
+            images: {
+              where: { isDefault: true },
+              select: {
+                imageUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    return wishList.map((item) => item.product);
   }
 
   async addToWishList(userId: number, productId: number) {

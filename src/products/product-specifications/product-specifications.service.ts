@@ -12,14 +12,23 @@ export class ProductSpecificationsService {
   constructor(private prisma: PrismaService) {}
 
   async getAllCategoriesWithSpecification(productId: number) {
-    return this.prisma.productSpecificationsCategory.findMany({
-      where: {
-        productId,
+    const categories = await this.prisma.productSpecificationsCategory.findMany(
+      {
+        where: { productId },
+        include: { specifications: true },
       },
-      include: {
-        specifications: true,
-      },
-    });
+    );
+
+    return {
+      productId,
+      specifications: categories.map((category) => ({
+        category: category.name,
+        specs: category.specifications.map((spec) => ({
+          key: spec.key,
+          value: spec.value,
+        })),
+      })),
+    };
   }
 
   async createSpecificationCategory(
