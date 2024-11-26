@@ -281,16 +281,12 @@ export class AuthService {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      path: '/',
-      domain: 'back-test-production-9b83.up.railway.app',
     });
 
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      path: '/',
-      domain: 'back-test-production-9b83.up.railway.app',
     });
     return { message: 'Logged out successfully' };
   }
