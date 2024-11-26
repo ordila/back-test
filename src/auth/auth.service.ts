@@ -284,6 +284,7 @@ export class AuthService {
   }
 
   async checkAuthStatus(req: Request): Promise<boolean> {
+    console.log('req', req);
     const accessToken = req.cookies['accessToken'];
 
     if (!accessToken) {
