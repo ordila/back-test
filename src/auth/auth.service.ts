@@ -277,9 +277,21 @@ export class AuthService {
       });
     }
 
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      domain: 'back-test-production-9b83.up.railway.app',
+    });
 
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      domain: 'back-test-production-9b83.up.railway.app',
+    });
     return { message: 'Logged out successfully' };
   }
 
