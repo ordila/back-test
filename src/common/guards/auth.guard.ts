@@ -43,7 +43,7 @@ export class AuthGuard implements CanActivate {
           // Встановлюємо новий access токен в кукі
           response.cookie('accessToken', newAccessToken, {
             httpOnly: true,
-            secure: true,
+            secure: false,
             sameSite: 'none',
             maxAge: Number(
               this.configService.get<string>('ACCESS_TOKEN_COOKIE_MAX_AGE'),
