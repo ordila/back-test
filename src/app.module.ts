@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { WishListModule } from './wish-list/wish-list.module';
 import { ProductsReviewsModule } from './products/products-reviews/product-reviews.module';
 import { UserModule } from './user/user.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UserModule } from './user/user.module';
     WishListModule,
     ProductsReviewsModule,
     UserModule,
+    PaymentModule,
   ],
   controllers: [],
   providers: [],
