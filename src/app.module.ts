@@ -11,6 +11,7 @@ import { WishListModule } from './wish-list/wish-list.module';
 import { ProductsReviewsModule } from './products/products-reviews/product-reviews.module';
 import { UserModule } from './user/user.module';
 import { PaymentModule } from './payment/payment.module';
+import { BasketModule } from './basket/basket.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PaymentModule } from './payment/payment.module';
     ProductsReviewsModule,
     UserModule,
     PaymentModule,
+    BasketModule,
   ],
   controllers: [],
   providers: [],

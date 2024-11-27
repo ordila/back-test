@@ -8,24 +8,25 @@ datasource db {
 }
 
 model User {
-  id          Int         @id @default(autoincrement())
-  email       String      @unique
-  password    String
-  isAdmin     Boolean     @default(false)
-  name        String?
-  middleName  String?
-  lastName    String?
-  dateOfBirth DateTime?
-  sex         String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  refreshToken String?  
-
-  contacts Contact[]
-  ordersRecipients OrdersRecipient[]
-  wishList WishList[]
+  id                Int               @id @default(autoincrement())
+  email             String            @unique
+  password          String
+  isAdmin           Boolean           @default(false)
+  name              String?
+  middleName        String?
+  lastName          String?
+  dateOfBirth       DateTime?
+  sex               String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  refreshToken      String?
+  basket            Basket[]
+  contacts          Contact[]
   deliveryAddresses DeliveryAddress[]
-  reviews Review[]
+  ordersRecipients  OrdersRecipient[]
+  reviews           Review[]
+  wishList          WishList[]
+  order             Order[]
 }
 
 model Contact {
@@ -35,7 +36,6 @@ model Contact {
   phoneNumber String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -50,8 +50,8 @@ model OrdersRecipient {
   email       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order       Order?   @relation("OrderToOrdersRecipient")
 }
 
 model DeliveryAddress {
@@ -66,8 +66,8 @@ model DeliveryAddress {
   apartment String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order     Order[]
 }
 
 model WishList {
@@ -75,13 +75,21 @@ model WishList {
   userId    Int
   productId Int
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
 
+model Basket {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
 model Product {
   id                      Int                             @id @default(autoincrement())
@@ -92,6 +100,8 @@ model Product {
   discount                Float?                          @default(0.0)
   createdAt               DateTime                        @default(now())
   updatedAt               DateTime                        @updatedAt
+  basket                  Basket[]
+  orderItems              OrderItem[]
   category                Category                        @relation(fields: [categoryId], references: [id])
   bundlesAsBundled        ProductBundle[]                 @relation("BundledProduct")
   bundlesAsMain           ProductBundle[]                 @relation("MainProduct")
@@ -111,8 +121,6 @@ model Category {
   updatedAt DateTime  @updatedAt
   products  Product[]
 }
-
-
 
 model ProductVariantCategory {
   id          Int              @id @default(autoincrement())
@@ -170,7 +178,7 @@ model ProductLabel {
   label     Label    @relation(fields: [labelId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
 
-   @@unique([productId, labelId])
+  @@unique([productId, labelId])
 }
 
 model Label {
@@ -200,7 +208,40 @@ model Review {
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  productId  Int
+  quantity   Int      @default(1)
+  unitPrice  Float
+  totalPrice Float
+  createdAt  DateTime @default(now())
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@unique([orderId, productId])
+}
+
+model Order {
+  id                Int             @id @default(autoincrement())
+  userId            Int
+  recipientId       Int             @unique
+  deliveryAddressId Int
+  status            String          @default("new")
+  totalPrice        Float
+  paymentType       String          @default("card")
+  paymentStatus     String          @default("pending")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  note              String?
+  items             OrderItem[]
+  deliveryAddress   DeliveryAddress @relation(fields: [deliveryAddressId], references: [id])
+  recipient         OrdersRecipient @relation("OrderToOrdersRecipient", fields: [recipientId], references: [id])
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
 }
