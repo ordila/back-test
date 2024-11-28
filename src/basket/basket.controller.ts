@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
 import { BasketService } from './basket.service';
+import { AddToBasketDto } from './dto/add-to-basket.dto';
 
 @Controller('basket')
 export class BasketController {
@@ -11,13 +12,11 @@ export class BasketController {
   }
 
   @Post()
-  addToBasket(
-    @Body() body: { userId: number; productId: number; quantity: number },
-  ) {
+  addToBasket(@Body() addToBasketDto: AddToBasketDto) {
     return this.basketService.addToBasket(
-      body.userId,
-      body.productId,
-      body.quantity,
+      addToBasketDto.userId,
+      addToBasketDto.productId,
+      addToBasketDto.quantity,
     );
   }
 

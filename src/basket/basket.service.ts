@@ -8,7 +8,16 @@ export class BasketService {
   async findUserBasket(userId: number) {
     return this.prisma.basket.findMany({
       where: { userId },
-      include: { product: true },
+      include: {
+        product: {
+          include: {
+            images: {
+              where: { isDefault: true },
+              select: { imageUrl: true },
+            },
+          },
+        },
+      },
     });
   }
 
